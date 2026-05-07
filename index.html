@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Uçak Takip Sistemi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+
+<body class="bg-gray-100">
+<div class="flex">
+
+  <div class="w-64 bg-gray-900 text-white min-h-screen p-5">
+    <h2 class="text-xl font-bold mb-6">✈️ Uçak Panel</h2>
+    <button onclick="showPage('dashboard')" class="block mb-3">Dashboard</button>
+    <button onclick="showPage('excel')" class="block mb-3">Excel Yükle</button>
+    <button onclick="showPage('kayitlar')" class="block mb-3">Kayıtlar</button>
+    <button onclick="showPage('firma')" class="block mb-3">Firmalar</button>
+  </div>
+
+  <div class="flex-1 p-6">
+
+    <div id="dashboard" class="page">
+      <h1 class="text-2xl font-bold mb-4">Genel Durum</h1>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Maliyet</p><h2 id="ciro" class="text-xl font-bold">0</h2></div>
+        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Satış</p><h2 id="satis" class="text-xl font-bold">0</h2></div>
+        <div class="bg-white p-4 rounded-xl shadow"><p>Kar/Zarar</p><h2 id="net" class="text-xl font-bold">0</h2></div>
+      </div>
+    </div>
+
+    <div id="excel" class="page hidden">
+      <h1 class="text-xl font-bold mb-4">Excel Yükle</h1>
+
+      <div class="bg-white p-4 rounded-xl shadow mb-4">
+        <h3 class="font-bold mb-2">1) Hasılat Raporu</h3>
+        <input type="file" id="hasilatInput">
+        <button onclick="hasilatOku()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Hasılatı Oku</button>
+        <div id="hasilatSonuc" class="mt-3 text-sm"></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow mb-4">
+        <h3 class="font-bold mb-2">2) Detaylı İşlem Arama</h3>
+        <input type="file" id="excelInput">
+        <button onclick="excelOku()" class="bg-green-600 text-white px-4 py-2 rounded-lg">Detaylı Raporu Oku</button>
+        <div id="excelSonuc" class="mt-3 text-sm"></div>
+      </div>
+
+      <div id="pnrOzet" class="mt-5"></div>
+    </div>
+
+    <div id="kayitlar" class="page hidden">
+      <h1 class="text-xl font-bold mb-4">Kayıtlı Biletler</h1>
+      <input id="aramaPnr" placeholder="PNR ara..." onkeyup="kayitliBiletleriListele()" class="border p-2 rounded mb-3">
+      <div id="kayitliBiletler"></div>
+    </div>
+
+    <div id="firma" class="page hidden">
+      <h1 class="text-xl font-bold mb-4">Firma Yönetimi</h1>
+      <input id="firmaAdi" placeholder="Firma adı" class="border p-2 rounded">
+      <button onclick="firmaEkle()" class="bg-green-600 text-white px-4 py-2 rounded-lg">Ekle</button>
+      <ul id="firmaListesi" class="mt-4"></ul>
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
