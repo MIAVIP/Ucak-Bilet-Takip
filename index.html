@@ -15,7 +15,8 @@
     <h2 class="text-xl font-bold mb-6">✈️ Uçak Panel</h2>
     <button onclick="showPage('dashboard')" class="block mb-3">Dashboard</button>
     <button onclick="showPage('excel')" class="block mb-3">Excel Yükle</button>
-    <button onclick="showPage('kayitlar')" class="block mb-3">Kayıtlar</button>
+    <button onclick="showPage('kayitlar')" class="block mb-3">Kayıtlı Biletler</button>
+    <button onclick="showPage('firmaRaporu')" class="block mb-3">Firma Raporu</button>
     <button onclick="showPage('firma')" class="block mb-3">Firmalar</button>
   </div>
 
@@ -23,10 +24,11 @@
 
     <div id="dashboard" class="page">
       <h1 class="text-2xl font-bold mb-4">Genel Durum</h1>
-      <div class="grid grid-cols-3 gap-4">
-        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Maliyet</p><h2 id="ciro" class="text-xl font-bold">0</h2></div>
-        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Satış</p><h2 id="satis" class="text-xl font-bold">0</h2></div>
-        <div class="bg-white p-4 rounded-xl shadow"><p>Kar/Zarar</p><h2 id="net" class="text-xl font-bold">0</h2></div>
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Kayıt</p><h2 id="dashKayit" class="text-xl font-bold">0</h2></div>
+        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Maliyet</p><h2 id="dashMaliyet" class="text-xl font-bold">0 TL</h2></div>
+        <div class="bg-white p-4 rounded-xl shadow"><p>Toplam Satış</p><h2 id="dashSatis" class="text-xl font-bold">0 TL</h2></div>
+        <div class="bg-white p-4 rounded-xl shadow"><p>Kar/Zarar</p><h2 id="dashKar" class="text-xl font-bold">0 TL</h2></div>
       </div>
     </div>
 
@@ -52,8 +54,53 @@
 
     <div id="kayitlar" class="page hidden">
       <h1 class="text-xl font-bold mb-4">Kayıtlı Biletler</h1>
-      <input id="aramaPnr" placeholder="PNR ara..." onkeyup="kayitliBiletleriListele()" class="border p-2 rounded mb-3">
+
+      <div class="bg-white p-4 rounded-xl shadow mb-4 grid grid-cols-4 gap-3">
+        <input id="aramaPnr" placeholder="PNR ara..." onkeyup="kayitliBiletleriListele()" class="border p-2 rounded">
+        <input id="aramaYolcu" placeholder="Yolcu adı ara..." onkeyup="kayitliBiletleriListele()" class="border p-2 rounded">
+
+        <select id="kayitFirmaFilter" onchange="kayitliBiletleriListele()" class="border p-2 rounded">
+          <option value="">Tüm Firmalar</option>
+        </select>
+
+        <select id="durumFilter" onchange="kayitliBiletleriListele()" class="border p-2 rounded">
+          <option value="">Tüm Durumlar</option>
+          <option value="SATIS">Satış</option>
+          <option value="SATISIPTAL">Satış İptal</option>
+          <option value="IADE">İade</option>
+          <option value="VOID">Void / Rez İptal</option>
+        </select>
+
+        <input id="baslangicTarih" type="date" onchange="kayitliBiletleriListele()" class="border p-2 rounded">
+        <input id="bitisTarih" type="date" onchange="kayitliBiletleriListele()" class="border p-2 rounded">
+
+        <select id="faturaFilter" onchange="kayitliBiletleriListele()" class="border p-2 rounded">
+          <option value="">Tüm Faturalar</option>
+          <option value="Kesildi">Kesildi</option>
+          <option value="Kesilmedi">Kesilmedi</option>
+        </select>
+
+        <button onclick="kayitliBiletleriListele()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Ara / Yenile</button>
+      </div>
+
+      <div id="kayitliOzet" class="mb-4"></div>
       <div id="kayitliBiletler"></div>
+    </div>
+
+    <div id="firmaRaporu" class="page hidden">
+      <h1 class="text-xl font-bold mb-4">Firma Raporu</h1>
+
+      <div class="bg-white p-4 rounded-xl shadow mb-4 grid grid-cols-4 gap-3">
+        <select id="raporFirma" class="border p-2 rounded">
+          <option value="">Firma seç</option>
+        </select>
+        <input id="raporBaslangic" type="date" class="border p-2 rounded">
+        <input id="raporBitis" type="date" class="border p-2 rounded">
+        <button onclick="firmaRaporuGetir()" class="bg-purple-600 text-white px-4 py-2 rounded-lg">Rapor Getir</button>
+      </div>
+
+      <div id="firmaRaporOzet" class="mb-4"></div>
+      <div id="firmaRaporTablo"></div>
     </div>
 
     <div id="firma" class="page hidden">
