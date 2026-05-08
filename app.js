@@ -269,16 +269,28 @@ async function pnrDetayGoster(pnr, hareketler) {
     const yolcuAdi = String(o.yolcu || "").trim();
     const kayitliFirmaId = hafiza[yolcuAdi] || "";
 
-    let options = `<option value="">Firma seç</option>`;
-    firmalar.forEach(f => {
-      const selected = String(f.id) === String(kayitliFirmaId) ? "selected" : "";
-      options += `<option value="${f.id}" ${selected}>${f.firma_adi}</option>`;
-    });
+   let kayitliFirmaAdi = "";
 
+firmalar.forEach(f => {
+  if (String(f.id) === String(kayitliFirmaId)) {
+    kayitliFirmaAdi = f.firma_adi;
+  }
+});
+
+let firmaDatalist = "";
+
+firmalar.forEach(f => {
+  firmaDatalist += `<option value="${f.firma_adi}"></option>`;
+});
     html += `
       <tr>
         <td class="border p-2">${yolcuAdi}</td>
-        <td class="border p-2"><select id="firmaSec_${i}" class="border p-1 rounded">${options}</select></td>
+        <td class="border p-2">
+  <input id="firmaSec_${i}" list="firmaList_${i}" value="${kayitliFirmaAdi}" placeholder="Firma seç veya yaz" class="border p-2 rounded w-full">
+  <datalist id="firmaList_${i}">
+    ${firmaDatalist}
+  </datalist>
+</td>
         <td class="border p-2">${o.bilet || ""}</td>
         <td class="border p-2">${o.durum || ""}</td>
         <td class="border p-2">${o.tarih || ""}</td>
@@ -359,68 +371,47 @@ async function yolcuFirmaHafizasiGetir() {
   return map;
 }
 
-async function yolcuFirmaKaydet(yolcuAdi, firmaId) {
-  if (!firmaId) return alert("Firma seç");
+async function yolcuFirmaKaydet(yolcuAdi, firmaAdi) {
+  firmaAdi = String(firmaAdi || "").trim();
+
+  if (!firmaAdi) return alert("Firma seç veya yaz");
+
+  let { data: bulunanFirma, error: bulmaHata } = await supabaseClient
+    .from("firmalar")
+    .select("*")
+    .eq("firma_adi", firmaAdi)
+    .maybeSingle();
+
+  if (bulmaHata) return alert("Firma arama hatası: " + bulmaHata.message);
+
+  let firmaId;
+
+  if (bulunanFirma) {
+    firmaId = bulunanFirma.id;
+  } else {
+    const { data: yeniFirma, error: eklemeHata } = await supabaseClient
+      .from("firmalar")
+      .insert([{ firma_adi: firmaAdi }])
+      .select()
+      .single();
+
+    if (eklemeHata) return alert("Yeni firma ekleme hatası: " + eklemeHata.message);
+
+    firmaId = yeniFirma.id;
+    await firmalariListele();
+    await firmaDropdownlariniDoldur();
+  }
 
   const { error } = await supabaseClient
     .from("yolcu_firma_hafizasi")
-    .upsert({ yolcu_adi: yolcuAdi, firma_id: Number(firmaId) }, { onConflict: "yolcu_adi" });
+    .upsert(
+      { yolcu_adi: yolcuAdi, firma_id: Number(firmaId) },
+      { onConflict: "yolcu_adi" }
+    );
 
   if (error) return alert("Hafıza hatası: " + error.message);
-  alert("Firma hafızaya kaydedildi");
-}
 
-function pnrFiyatHesapla(pnr) {
-  if (!window.hasilatData) return 0;
-
-  const satirlar = window.hasilatData.filter(x => String(x["Pnr"] || "").trim() === String(pnr).trim());
-  let toplam = 0;
-
-  satirlar.forEach(s => {
-    toplam += paraCevir(s["Ön Ödeme Tutarı"]);
-    toplam += paraCevir(s["Hopi Tutarı"]);
-    toplam += paraCevir(s["Kredi Kartı Tutarı"]);
-  });
-
-  return toplam;
-}
-
-function paraCevir(deger) {
-  if (!deger) return 0;
-  return parseFloat(String(deger).replace("TL", "").replace(/\./g, "").replace(",", ".").trim()) || 0;
-}
-
-function seyahatTipiBul(hareketler) {
-  const rota = String((hareketler[0] || {})["Kalkış Varış"] || "").toLocaleLowerCase("tr-TR");
-
-  if (!rota) return "Yurtiçi";
-
-  const yurtdisiUlkeler = [
-    "abd", "amerika", "fransa", "kanada", "almanya", "ingiltere", "hollanda",
-    "italya", "ispanya", "belçika", "isviçre", "azerbaycan", "bae", "dubai",
-    "katar", "mısır", "suudi", "rusya", "gürcistan", "yunanistan", "kore", "çin", "japonya"
-  ];
-
-  return yurtdisiUlkeler.some(u => rota.includes(u)) ? "Yurtdışı" : "Yurtiçi";
-}
-
-function tarihCevir(tarih) {
-  if (!tarih) return new Date(0);
-
-  if (typeof tarih === "number") {
-    return new Date((tarih - 25569) * 86400 * 1000);
-  }
-
-  const text = String(tarih);
-  const tarihKismi = text.split(" ")[0];
-  const saat = text.split(" ")[1] || "00:00:00";
-
-  if (tarihKismi.includes(".")) {
-    const [gun, ay, yil] = tarihKismi.split(".");
-    return new Date(`${yil}-${ay}-${gun}T${saat}`);
-  }
-
-  return new Date(text);
+  alert(`${yolcuAdi} → ${firmaAdi} olarak kaydedildi`);
 }
 
 async function kayitliBiletleriListele() {
